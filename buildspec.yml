@@ -4,7 +4,7 @@ env:
     REPOSITORY_URI: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
 phases:
   install:
-    runtime-versions: 
+    runtime-versions:
       docker: 20
     commands:
       - echo Installing kubectl...
@@ -31,11 +31,11 @@ phases:
       - CALLER_ARN=$(aws sts get-caller-identity --query 'Arn' --output text)
       - echo "Checking if EKS access entry exists for $CALLER_ARN..."
       - if ! aws eks describe-access-entry --cluster-name my-eks-cluster --principal-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role --output text | grep -q arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role; then
-          echo "Creating EKS access entry...";
-          aws eks create-access-entry --cluster-name my-eks-cluster --principal-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role --type STANDARD --username arn:aws:sts::$AWS_ACCOUNT_ID:assumed-role/eks-codebuild-role/{{SessionName}};
-          aws eks associate-access-policy --cluster-name my-eks-cluster --principal-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role --access-scope type=cluster --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy;
+        echo "Creating EKS access entry...";
+        aws eks create-access-entry --cluster-name my-eks-cluster --principal-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role --type STANDARD --username arn:aws:sts::$AWS_ACCOUNT_ID:assumed-role/eks-codebuild-role/{{SessionName}};
+        aws eks associate-access-policy --cluster-name my-eks-cluster --principal-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-codebuild-role --access-scope type=cluster --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy;
         else
-          echo "EKS access entry for $CALLER_ARN already exists.";
+        echo "EKS access entry for $CALLER_ARN already exists.";
         fi
       - |
         export SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=my-eks-cluster-node*" --query "SecurityGroups[*].GroupId" --output text)
@@ -55,7 +55,7 @@ phases:
   build:
     commands:
       - echo Building the Docker image...
-      - pwd 
+      - pwd
       - docker build -t $IMAGE_REPO_NAME .
       - docker tag $IMAGE_REPO_NAME $REPOSITORY_URI
   post_build:
@@ -64,7 +64,7 @@ phases:
       - docker push $REPOSITORY_URI
       - sed -i "s|123456789.dkr.ecr.eu-west-1.amazonaws.com/aritra-eks-demo:[^ ]*|$REPOSITORY_URI:latest|" deployment.yaml
       - cat deployment.yaml
-      - kubectl config view 
+      - kubectl config view
       - echo Applying deployment...
       - cat /root/.kube/config
       - aws sts get-caller-identity
@@ -98,5 +98,5 @@ phases:
       - kubectl get svc my-app-service
 artifacts:
   files:
-    - '**/*'
+    - "**/*"
   discard-paths: yes
